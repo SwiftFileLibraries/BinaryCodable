@@ -9,6 +9,23 @@ import Foundation
 
 typealias ParentIndexModifier = ((_ increment: Int) -> Void)
 
+class BinaryDecoderIndexContainer {
+    
+    var currentIndex: Int {
+        didSet {
+            onChange?(currentIndex - oldValue)
+        }
+    }
+    
+    let onChange: ParentIndexModifier?
+    
+    init(currentIndex: Int, onChange: ParentIndexModifier?) {
+        self.currentIndex = currentIndex
+        self.onChange = onChange
+    }
+    
+}
+
 struct BinaryDecoderImpl {
     let codingPath: [CodingKey]
     let userInfo: [CodingUserInfoKey: Any]
@@ -67,36 +84,32 @@ extension BinaryDecoderImpl {
         
         var isAtEnd: Bool { currentIndex >= (count ?? 0) }
         
-        func isAtEnd(_ position: Int, _ length: Int) -> Bool {
-            return position + length >= (self.count ?? 0)
+        func isBeyondEnd(_ position: Int, _ length: Int) -> Bool {
+            return position + length > (self.count ?? 0)
         }
         
-        var currentIndex = 0 {
-            didSet {
-                parentIndexModifier?(currentIndex - oldValue)
-            }
-        }
+        var indexContainer: BinaryDecoderIndexContainer
         
-        internal var parentIndexModifier: ((_ increment: Int) -> Void)?
+        var currentIndex: Int { indexContainer.currentIndex }
 
         init(impl: BinaryDecoderImpl, codingPath: [CodingKey], data: Data, parentIndexModifier: ParentIndexModifier?) {
             self.impl = impl
             self.codingPath = codingPath
             self.data = data
-            self.parentIndexModifier = parentIndexModifier
+            self.indexContainer = BinaryDecoderIndexContainer(currentIndex: 0, onChange: parentIndexModifier)
         }
         
         mutating func incrementIndex(by length: Int) throws {
             let _ = try getNextValue(ofType: Any.self, length: length)
-            currentIndex += length
+            indexContainer.currentIndex += length
         }
         
         mutating func decode(_ type: Bool.Type) throws -> Bool {
             let data = try getNextValue(ofType: UInt8.self, length: 1)
-            currentIndex += 1
+            indexContainer.currentIndex += 1
             
             // Not 100% on this implementation, this does make assumptions.
-            switch data[0] {
+            switch data[data.startIndex] {
             case 0x01:
                 return true
             case 0x00:
@@ -120,7 +133,7 @@ extension BinaryDecoderImpl {
                   string.append(String(unicodeScalar))
                   decodedBytes += 1
               case .scalarValue(_): // End of string
-                  currentIndex += decodedBytes + 1
+                  indexContainer.currentIndex += decodedBytes + 1
                   return string
               case .emptyInput:
                   var path = self.codingPath
@@ -150,7 +163,7 @@ extension BinaryDecoderImpl {
               case .scalarValue(let unicodeScalar):
                   string.append(String(unicodeScalar))
               case .emptyInput:
-                  currentIndex += length
+                  indexContainer.currentIndex += length
                   return string
               case .error:
                   var path = self.codingPath
@@ -162,77 +175,77 @@ extension BinaryDecoderImpl {
             }
         }
         
-        mutating func decode(_ type: Double.Type, strategy: BinaryDecoder.NumberDecodingStrategy? = nil) throws -> Double {
+        mutating func decode(_ type: Double.Type) throws -> Double {
             let data = try getNextValue(ofType: Double.self, length: 8)
-            currentIndex += 8
-            let uInt = UInt64(from: (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]), bigEndian: (strategy ?? impl.options.numberDecodingStrategy) == .bigEndian)
+            indexContainer.currentIndex += 8
+            let uInt = UInt64(from: (data[data.startIndex], data[data.startIndex + 1], data[data.startIndex + 2], data[data.startIndex + 3], data[data.startIndex + 4], data[data.startIndex + 5], data[data.startIndex + 6], data[data.startIndex + 7]), bigEndian: impl.options.numberDecodingStrategy == .bigEndian)
             return unsafeConversion(uInt)
         }
         
-        mutating func decode(_ type: Float.Type, strategy: BinaryDecoder.NumberDecodingStrategy? = nil) throws -> Float {
+        mutating func decode(_ type: Float.Type) throws -> Float {
             let data = try getNextValue(ofType: Double.self, length: 4)
-            currentIndex += 4
-            let uInt = UInt32(from: (data[0], data[1], data[2], data[3]), bigEndian: (strategy ?? impl.options.numberDecodingStrategy) == .bigEndian)
+            indexContainer.currentIndex += 4
+            let uInt = UInt32(from: (data[data.startIndex], data[data.startIndex + 1], data[data.startIndex + 2], data[data.startIndex + 3]), bigEndian: impl.options.numberDecodingStrategy == .bigEndian)
             return unsafeConversion(uInt)
         }
         
         @available(macOS, unavailable)
-        mutating func decode(_ type: Float16.Type, strategy: BinaryDecoder.NumberDecodingStrategy? = nil) throws -> Float16 {
+        mutating func decode(_ type: Float16.Type) throws -> Float16 {
             let data = try getNextValue(ofType: Double.self, length: 2)
-            currentIndex += 2
-            let uInt = UInt16(from: (data[0], data[1]), bigEndian: (strategy ?? impl.options.numberDecodingStrategy) == .bigEndian)
+            indexContainer.currentIndex += 2
+            let uInt = UInt16(from: (data[data.startIndex], data[data.startIndex + 1]), bigEndian: impl.options.numberDecodingStrategy == .bigEndian)
             return unsafeConversion(uInt)
         }
         
-        mutating func decode(_ type: Int8.Type, strategy: BinaryDecoder.NumberDecodingStrategy? = nil) throws -> Int8 {
+        mutating func decode(_ type: Int8.Type) throws -> Int8 {
             let data = try getNextValue(ofType: Int8.self, length: 1)
-            currentIndex += 1
-            return Int8(bitPattern: data[0])
+            indexContainer.currentIndex += 1
+            return Int8(bitPattern: data[data.startIndex])
         }
         
-        mutating func decode(_ type: Int16.Type, strategy: BinaryDecoder.NumberDecodingStrategy? = nil) throws -> Int16 {
+        mutating func decode(_ type: Int16.Type) throws -> Int16 {
             let data = try getNextValue(ofType: Int16.self, length: 2)
-            currentIndex += 2
-            let uInt = UInt16(from: (data[0], data[1]), bigEndian: (strategy ?? impl.options.numberDecodingStrategy) == .bigEndian)
+            indexContainer.currentIndex += 2
+            let uInt = UInt16(from: (data[data.startIndex], data[data.startIndex + 1]), bigEndian: impl.options.numberDecodingStrategy == .bigEndian)
             return Int16(bitPattern: uInt)
         }
         
-        mutating func decode(_ type: Int32.Type, strategy: BinaryDecoder.NumberDecodingStrategy? = nil) throws -> Int32 {
+        mutating func decode(_ type: Int32.Type) throws -> Int32 {
             let data = try getNextValue(ofType: Int32.self, length: 4)
-            currentIndex += 4
-            let uInt = UInt32(from: (data[0], data[1], data[2], data[3]), bigEndian: (strategy ?? impl.options.numberDecodingStrategy) == .bigEndian)
+            indexContainer.currentIndex += 4
+            let uInt = UInt32(from: (data[data.startIndex], data[data.startIndex + 1], data[data.startIndex + 2], data[data.startIndex + 3]), bigEndian: impl.options.numberDecodingStrategy == .bigEndian)
             return Int32(bitPattern: uInt)
         }
         
-        mutating func decode(_ type: Int64.Type, strategy: BinaryDecoder.NumberDecodingStrategy? = nil) throws -> Int64 {
+        mutating func decode(_ type: Int64.Type) throws -> Int64 {
             let data = try getNextValue(ofType: Int64.self, length: 8)
-            currentIndex += 8
-            let uInt = UInt64(from: (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]), bigEndian: (strategy ?? impl.options.numberDecodingStrategy) == .bigEndian)
+            indexContainer.currentIndex += 8
+            let uInt = UInt64(from: (data[data.startIndex], data[data.startIndex + 1], data[data.startIndex + 2], data[data.startIndex + 3], data[data.startIndex + 4], data[data.startIndex + 5], data[data.startIndex + 6], data[data.startIndex + 7]), bigEndian: impl.options.numberDecodingStrategy == .bigEndian)
             return Int64(bitPattern: uInt)
         }
         
-        mutating func decode(_ type: UInt8.Type, strategy: BinaryDecoder.NumberDecodingStrategy? = nil) throws -> UInt8 {
+        mutating func decode(_ type: UInt8.Type) throws -> UInt8 {
             let data = try getNextValue(ofType: UInt8.self, length: 1)
-            currentIndex += 1
-            return data[0]
+            indexContainer.currentIndex += 1
+            return data[data.startIndex]
         }
         
-        mutating func decode(_ type: UInt16.Type, strategy: BinaryDecoder.NumberDecodingStrategy? = nil) throws -> UInt16 {
+        mutating func decode(_ type: UInt16.Type) throws -> UInt16 {
             let data = try getNextValue(ofType: UInt16.self, length: 2)
-            currentIndex += 2
-            return UInt16(from: (data[0], data[1]), bigEndian: (strategy ?? impl.options.numberDecodingStrategy) == .bigEndian)
+            indexContainer.currentIndex += 2
+            return UInt16(from: (data[data.startIndex], data[data.startIndex + 1]), bigEndian: impl.options.numberDecodingStrategy == .bigEndian)
         }
         
-        mutating func decode(_ type: UInt32.Type, strategy: BinaryDecoder.NumberDecodingStrategy? = nil) throws -> UInt32 {
+        mutating func decode(_ type: UInt32.Type) throws -> UInt32 {
             let data = try getNextValue(ofType: UInt32.self, length: 4)
-            currentIndex += 4
-            return UInt32(from: (data[0], data[1], data[2], data[3]), bigEndian: (strategy ?? impl.options.numberDecodingStrategy) == .bigEndian)
+            indexContainer.currentIndex += 4
+            return UInt32(from: (data[data.startIndex], data[data.startIndex + 1], data[data.startIndex + 2], data[data.startIndex + 3]), bigEndian: impl.options.numberDecodingStrategy == .bigEndian)
         }
         
-        mutating func decode(_ type: UInt64.Type, strategy: BinaryDecoder.NumberDecodingStrategy? = nil) throws -> UInt64 {
+        mutating func decode(_ type: UInt64.Type) throws -> UInt64 {
             let data = try getNextValue(ofType: UInt64.self, length: 8)
-            currentIndex += 8
-            return UInt64(from: (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]), bigEndian: (strategy ?? impl.options.numberDecodingStrategy) == .bigEndian)
+            indexContainer.currentIndex += 8
+            return UInt64(from: (data[data.startIndex], data[data.startIndex + 1], data[data.startIndex + 2], data[data.startIndex + 3], data[data.startIndex + 4], data[data.startIndex + 5], data[data.startIndex + 6], data[data.startIndex + 7]), bigEndian: impl.options.numberDecodingStrategy == .bigEndian)
         }
         
         mutating func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
@@ -250,6 +263,8 @@ extension BinaryDecoderImpl {
         private mutating func decoderForNextElement<T>(ofType: T.Type, length: Int? = nil) throws -> BinaryDecoderImpl {
             let value = try self.getNextValue(ofType: T.self, length: length ?? ((count ?? 0) - currentIndex))
             let newPath = self.codingPath + [_BinaryKey(index: currentIndex)]
+            
+            let indexContainer = self.indexContainer
 
             return BinaryDecoderImpl(
                 userInfo: self.impl.userInfo,
@@ -257,14 +272,14 @@ extension BinaryDecoderImpl {
                 codingPath: newPath,
                 options: self.impl.options,
                 parentIndexModifier: { (increment) in
-                    self.currentIndex += increment
+                    indexContainer.currentIndex += increment
                 }
             )
         }
         
         @inline(__always)
         private func getNextValue<T>(ofType: T.Type, length: Int) throws -> Data.SubSequence {
-            guard !self.isAtEnd(currentIndex, length) else {
+            guard !self.isBeyondEnd(currentIndex, length) else {
                 var message = "Unkeyed container is at end."
                 if T.self == BinaryContainer.self {
                     message = "Cannot get nested binary container -- binary container is at end."
