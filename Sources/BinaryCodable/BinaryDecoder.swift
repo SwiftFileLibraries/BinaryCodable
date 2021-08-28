@@ -18,6 +18,7 @@
 
 import Foundation
 
+/// An object that decodes instances of a data type from binary objects.
 open class BinaryDecoder {
     
     // MARK: - Options
@@ -61,7 +62,6 @@ open class BinaryDecoder {
     
     // MARK: - Decoding Values
     
-
     /// Returns a value of the type you specify, decoded from binary data.
     ///
     /// If a value within the data fails to decode, this method throws the corresponding error.
