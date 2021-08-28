@@ -65,14 +65,14 @@ extension BinaryDecoderImpl {
         // MARK: - Decoding
         
         func decodeNil(forKey key: K) throws -> Bool {
-            let index = try index(for: key)
+            let index = try getIndex(for: key)
             let data = try getNextValue(ofType: Never.self, position: index, length: 1)
             incrementCurrentIndex(to: index + 1)
             return data[data.startIndex] == 0
         }
         
         func decode(_ type: Bool.Type, forKey key: K) throws -> Bool {
-            let index = try index(for: key)
+            let index = try getIndex(for: key)
             let data = try getNextValue(ofType: UInt8.self, position: index, length: 1)
             incrementCurrentIndex(to: index + 1)
             
@@ -88,7 +88,7 @@ extension BinaryDecoderImpl {
         }
         
         func decode(_ type: String.Type, forKey key: K) throws -> String {
-            let index = try index(for: key)
+            let index = try getIndex(for: key)
             var utf8Decoder = UTF8()
             var string = ""
             var decodedBytes = 0
@@ -121,7 +121,7 @@ extension BinaryDecoderImpl {
         }
         
         func decode(_ type: String.Type, length: Int, forKey key: K) throws -> String {
-            let index = try index(for: key)
+            let index = try getIndex(for: key)
             var utf8 = UTF8()
             var string = ""
             
@@ -146,7 +146,7 @@ extension BinaryDecoderImpl {
         }
         
         func decode(_ type: Double.Type, forKey key: K) throws -> Double {
-            let index = try index(for: key)
+            let index = try getIndex(for: key)
             let data = try getNextValue(ofType: Double.self, position: index, length: 8)
             incrementCurrentIndex(to: index + 8)
             let uInt = impl.options.numberDecodingStrategy == .bigEndian ? UInt64(bigEndianBytes: data) : UInt64(littleEndianBytes: data)
@@ -154,7 +154,7 @@ extension BinaryDecoderImpl {
         }
         
         func decode(_ type: Float.Type, forKey key: K) throws -> Float {
-            let index = try index(for: key)
+            let index = try getIndex(for: key)
             let data = try getNextValue(ofType: Double.self, position: index, length: 4)
             incrementCurrentIndex(to: index + 4)
             let uInt = impl.options.numberDecodingStrategy == .bigEndian ? UInt32(bigEndianBytes: data) : UInt32(littleEndianBytes: data)
@@ -162,14 +162,14 @@ extension BinaryDecoderImpl {
         }
         
         func decode(_ type: Int8.Type, forKey key: K) throws -> Int8 {
-            let index = try index(for: key)
+            let index = try getIndex(for: key)
             let data = try getNextValue(ofType: Int8.self, position: index, length: 1)
             incrementCurrentIndex(to: index + 1)
             return Int8(bitPattern: data[data.startIndex])
         }
         
         func decode(_ type: Int16.Type, forKey key: K) throws -> Int16 {
-            let index = try index(for: key)
+            let index = try getIndex(for: key)
             let data = try getNextValue(ofType: Int16.self, position: index, length: 2)
             incrementCurrentIndex(to: index + 2)
             let uInt = impl.options.numberDecodingStrategy == .bigEndian ? UInt16(bigEndianBytes: data) : UInt16(littleEndianBytes: data)
@@ -177,7 +177,7 @@ extension BinaryDecoderImpl {
         }
         
         func decode(_ type: Int32.Type, forKey key: K) throws -> Int32 {
-            let index = try index(for: key)
+            let index = try getIndex(for: key)
             let data = try getNextValue(ofType: Int32.self, position: index, length: 4)
             incrementCurrentIndex(to: index + 4)
             let uInt = impl.options.numberDecodingStrategy == .bigEndian ? UInt32(bigEndianBytes: data) : UInt32(littleEndianBytes: data)
@@ -185,7 +185,7 @@ extension BinaryDecoderImpl {
         }
         
         func decode(_ type: Int64.Type, forKey key: K) throws -> Int64 {
-            let index = try index(for: key)
+            let index = try getIndex(for: key)
             let data = try getNextValue(ofType: Int64.self, position: index, length: 8)
             incrementCurrentIndex(to: index + 8)
             let uInt = impl.options.numberDecodingStrategy == .bigEndian ? UInt64(bigEndianBytes: data) : UInt64(littleEndianBytes: data)
@@ -193,7 +193,7 @@ extension BinaryDecoderImpl {
         }
         
         func decode(_ type: Int.Type, forKey key: K) throws -> Int {
-            let index = try index(for: key)
+            let index = try getIndex(for: key)
             let bytes = type.bitWidth / 8
             let data = try getNextValue(ofType: Int.self, position: index, length: bytes)
             incrementCurrentIndex(to: index + bytes)
@@ -202,35 +202,35 @@ extension BinaryDecoderImpl {
         }
         
         func decode(_ type: UInt8.Type, forKey key: K) throws -> UInt8 {
-            let index = try index(for: key)
+            let index = try getIndex(for: key)
             let data = try getNextValue(ofType: UInt8.self, position: index, length: 1)
             incrementCurrentIndex(to: index + 1)
             return data[data.startIndex]
         }
         
         func decode(_ type: UInt16.Type, forKey key: K) throws -> UInt16 {
-            let index = try index(for: key)
+            let index = try getIndex(for: key)
             let data = try getNextValue(ofType: UInt16.self, position: index, length: 2)
             incrementCurrentIndex(to: index + 2)
             return impl.options.numberDecodingStrategy == .bigEndian ? UInt16(bigEndianBytes: data) : UInt16(littleEndianBytes: data)
         }
         
         func decode(_ type: UInt32.Type, forKey key: K) throws -> UInt32 {
-            let index = try index(for: key)
+            let index = try getIndex(for: key)
             let data = try getNextValue(ofType: UInt32.self, position: index, length: 4)
             incrementCurrentIndex(to: index + 4)
             return impl.options.numberDecodingStrategy == .bigEndian ? UInt32(bigEndianBytes: data) : UInt32(littleEndianBytes: data)
         }
         
         func decode(_ type: UInt64.Type, forKey key: K) throws -> UInt64 {
-            let index = try index(for: key)
+            let index = try getIndex(for: key)
             let data = try getNextValue(ofType: UInt64.self, position: index, length: 8)
             incrementCurrentIndex(to: index + 8)
             return impl.options.numberDecodingStrategy == .bigEndian ? UInt64(bigEndianBytes: data) : UInt64(littleEndianBytes: data)
         }
         
         func decode(_ type: UInt.Type, forKey key: K) throws -> UInt {
-            let index = try index(for: key)
+            let index = try getIndex(for: key)
             let bytes = type.bitWidth / 8
             let data = try getNextValue(ofType: Int.self, position: index, length: bytes)
             incrementCurrentIndex(to: index + bytes)
@@ -270,7 +270,7 @@ extension BinaryDecoderImpl {
         // MARK: - Utilities
         
         @inline(__always)
-        private func index<K: CodingKey>(for key: K) throws -> Int {
+        private func getIndex<K: CodingKey>(for key: K) throws -> Int {
             guard let int = key.intValue else {
                 throw DecodingError.keyNotFound(key, DecodingError.Context(codingPath: codingPath,
                                                                            debugDescription: "The provided key does not exist.",
@@ -280,7 +280,7 @@ extension BinaryDecoderImpl {
         }
         
         private func decoderForKey<T, LocalKey: CodingKey>(ofType: T.Type, forKey key: LocalKey, length: Int? = nil) throws -> BinaryDecoderImpl {
-            let index = try index(for: key)
+            let index = try getIndex(for: key)
             let value = try self.getNextValue(ofType: T.self, position: index, length: length ?? ((count ?? 0) - index))
             let newPath = self.codingPath + [key]
             
@@ -298,7 +298,7 @@ extension BinaryDecoderImpl {
         }
         
         private func decoderForNextElement<T>(ofType: T.Type, forKey key: K, length: Int? = nil) throws -> BinaryDecoderImpl {
-            let index = try index(for: key)
+            let index = try getIndex(for: key)
             let value = try self.getNextValue(ofType: T.self, position: index, length: length ?? ((count ?? 0) - currentIndex))
             let newPath = self.codingPath + [_BinaryKey(index: index)]
             
