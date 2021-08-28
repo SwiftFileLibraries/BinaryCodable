@@ -78,19 +78,15 @@ final class SingleValueContainerTests: XCTestCase {
     }
     
     func testDecodeNil() {
-        var container = singleValueContainer(for: Data([0x00, 0x01]))
-        do {
-            let trueOutput = try container.decodeNil()
-            let falseOutput = try? container.decodeNil()
-            XCTAssertEqual(trueOutput, true)
-            XCTAssertEqual(falseOutput, false)
-        } catch {
-            XCTFail(error.localizedDescription)
-        }
+        let container = singleValueContainer(for: Data([0x00, 0x01]))
+        let trueOutput = container.decodeNil()
+        let falseOutput = container.decodeNil()
+        XCTAssertEqual(trueOutput, true)
+        XCTAssertEqual(falseOutput, false)
     }
     
     func testDecodeBool() {
-        var container = singleValueContainer(for: Data([0x00, 0x01, 0x02]))
+        let container = singleValueContainer(for: Data([0x00, 0x01, 0x02]))
         do {
             let falseOutput = try container.decode(Bool.self)
             let trueOutput = try container.decode(Bool.self)
@@ -104,7 +100,7 @@ final class SingleValueContainerTests: XCTestCase {
     }
     
     func testDecodeUInt8() {
-        var container = singleValueContainer(for: intData)
+        let container = singleValueContainer(for: intData)
         do {
             let output = try container.decode(UInt8.self)
             XCTAssertEqual(output, 243)
@@ -114,7 +110,7 @@ final class SingleValueContainerTests: XCTestCase {
     }
     
     func testDecodeUInt16() {
-        var container = singleValueContainer(for: intData)
+        let container = singleValueContainer(for: intData)
         do {
             let output = try container.decode(UInt16.self)
             XCTAssertEqual(output, 62242)
@@ -124,7 +120,7 @@ final class SingleValueContainerTests: XCTestCase {
     }
     
     func testDecodeUInt32() {
-        var container = singleValueContainer(for: intData)
+        let container = singleValueContainer(for: intData)
         do {
             let output = try container.decode(UInt32.self)
             XCTAssertEqual(output, 4079092180)
@@ -134,7 +130,7 @@ final class SingleValueContainerTests: XCTestCase {
     }
     
     func testDecodeUInt64() {
-        var container = singleValueContainer(for: intData)
+        let container = singleValueContainer(for: intData)
         do {
             let output = try container.decode(UInt64.self)
             XCTAssertEqual(output, 17519567513307872255)
@@ -144,7 +140,7 @@ final class SingleValueContainerTests: XCTestCase {
     }
     
     func testDecodeUInt() {
-        var container = singleValueContainer(for: intData)
+        let container = singleValueContainer(for: intData)
         do {
             let output = try container.decode(UInt.self)
             XCTAssertEqual(output, 17519567513307872255)
@@ -154,7 +150,7 @@ final class SingleValueContainerTests: XCTestCase {
     }
     
     func testDecodeInt8() {
-        var container = singleValueContainer(for: intData)
+        let container = singleValueContainer(for: intData)
         do {
             let output = try container.decode(Int8.self)
             XCTAssertEqual(output, -13)
@@ -164,7 +160,7 @@ final class SingleValueContainerTests: XCTestCase {
     }
     
     func testDecodeInt16() {
-        var container = singleValueContainer(for: intData)
+        let container = singleValueContainer(for: intData)
         do {
             let output = try container.decode(Int16.self)
             XCTAssertEqual(output, -3294)
@@ -174,7 +170,7 @@ final class SingleValueContainerTests: XCTestCase {
     }
     
     func testDecodeInt32() {
-        var container = singleValueContainer(for: intData)
+        let container = singleValueContainer(for: intData)
         do {
             let output = try container.decode(Int32.self)
             XCTAssertEqual(output, -215875116)
@@ -184,7 +180,7 @@ final class SingleValueContainerTests: XCTestCase {
     }
     
     func testDecodeInt64() {
-        var container = singleValueContainer(for: intData)
+        let container = singleValueContainer(for: intData)
         do {
             let output = try container.decode(Int64.self)
             XCTAssertEqual(output, -927176560401679361)
@@ -194,7 +190,7 @@ final class SingleValueContainerTests: XCTestCase {
     }
     
     func testDecodeInt() {
-        var container = singleValueContainer(for: intData)
+        let container = singleValueContainer(for: intData)
         do {
             let output = try container.decode(Int.self)
             XCTAssertEqual(output, -927176560401679361)
@@ -204,7 +200,7 @@ final class SingleValueContainerTests: XCTestCase {
     }
     
     func testDecodeFloat() {
-        var container = singleValueContainer(for: Data([0x40, 0x20, 0x00, 0x00]))
+        let container = singleValueContainer(for: Data([0x40, 0x20, 0x00, 0x00]))
         do {
             let output = try container.decode(Float32.self)
             XCTAssertEqual(output, 2.5)
@@ -214,7 +210,7 @@ final class SingleValueContainerTests: XCTestCase {
     }
     
     func testDecodeDouble() {
-        var container = singleValueContainer(for: Data([0x40, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
+        let container = singleValueContainer(for: Data([0x40, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
         do {
             let output = try container.decode(Float64.self)
             XCTAssertEqual(output, 8)
@@ -228,7 +224,7 @@ final class SingleValueContainerTests: XCTestCase {
         let bytes = initialString.utf8CString.map { UInt8($0) }
         let data = Data(bytes + bytes)
         
-        var container = singleValueContainer(for: data)
+        let container = singleValueContainer(for: data)
         do {
             let output = try container.decode(String.self)
             XCTAssertEqual(output, initialString)
@@ -268,7 +264,7 @@ final class SingleValueContainerTests: XCTestCase {
             }
         }
         
-        var container = singleValueContainer(for: Data([0xf3, 0x24, 0x56, 0x56, 0x57, 0x40, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
+        let container = singleValueContainer(for: Data([0xf3, 0x24, 0x56, 0x56, 0x57, 0x40, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]))
         do {
             let output = try container.decode(TestObject.self)
             XCTAssertEqual(output.int, 243)
