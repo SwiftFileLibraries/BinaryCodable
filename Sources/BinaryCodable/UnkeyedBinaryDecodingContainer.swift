@@ -38,4 +38,16 @@ public protocol UnkeyedBinaryDecodingContainer: UnkeyedDecodingContainer {
     ///   is null, or of there are no more values to decode.
     mutating func decode(_ type: String.Type, length: Int) throws -> String
     
+    /// Decodes a value of the given type.
+    ///
+    /// - parameter type: The type of value to decode.
+    /// - parameter length: The length of the type to decode in bytes.
+    /// - returns: A value of the requested type, if present for the given key
+    ///   and convertible to the requested type.
+    /// - throws: `DecodingError.typeMismatch` if the encountered encoded value
+    ///   is not convertible to the requested type.
+    /// - throws: `DecodingError.valueNotFound` if the encountered encoded value
+    ///   is null, or of there are no more values to decode.
+    mutating func decode<T: Decodable>(_ type: T.Type, length: Int) throws -> T
+    
 }

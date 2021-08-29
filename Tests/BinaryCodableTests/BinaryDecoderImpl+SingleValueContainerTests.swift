@@ -276,6 +276,19 @@ final class SingleValueContainerTests: XCTestCase {
         
     }
     
+    func testDecodeData() {
+        var container = singleValueContainer(for: Data([0x00, 0x01, 0x02, 0x03]))
+        do {
+            let output = try container.decode(Data.self, length: 2)
+            XCTAssertEqual(output.count, 2)
+            XCTAssertEqual(output.first, 0x00)
+            XCTAssertEqual(output.last, 0x01)
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
+        
+    }
+    
     func testEnum() {
         
         enum TestEnum: UInt16, RawRepresentable, Decodable {

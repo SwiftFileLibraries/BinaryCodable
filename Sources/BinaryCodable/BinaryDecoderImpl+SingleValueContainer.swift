@@ -225,6 +225,12 @@ extension BinaryDecoderImpl {
             return object
         }
         
+        func decode<T>(_ type: T.Type, length: Int) throws -> T where T : Decodable {
+            let newDecoder = try decoderForNextElement(ofType: T.self, length: length)
+            let object = try T(from: newDecoder)
+            return object
+        }
+        
         // MARK: - Utilities
         
         private func decoderForNextElement<T>(ofType: T.Type, length: Int? = nil) throws -> BinaryDecoderImpl {

@@ -1,5 +1,11 @@
 #  Changelog
 
+## 2.1.0
+
+### Added
+
+- Added a decoding function to specify length when decoding a specific type.
+
 ## 2.0.0
 
 ### Changed

@@ -298,5 +298,44 @@ final class KeyedContainerTests: XCTestCase {
         
     }
     
+    func testDecodeData() {
+        
+        struct CodingKeys: BinaryCodingKey {
+            
+            var intValue: Int?
+            var stringValue: String
+            var length: Int?
+            
+            init?(stringValue: String) {
+                self.stringValue = stringValue
+            }
+            
+            init?(intValue: Int) {
+                self.intValue = intValue
+                self.stringValue = "\(intValue)"
+            }
+            
+            init(intValue: Int, stringValue: String, length: Int) {
+                self.intValue = intValue
+                self.stringValue = stringValue
+                self.length = length
+            }
+            
+        }
+        
+        let container: KeyedDecodingContainer<CodingKeys> = keyedContainer(for: Data([0x00, 0x01, 0x02, 0x03]))
+        let key = CodingKeys(intValue: 1, stringValue: "Index 1", length: 2)
+        
+        do {
+            let output = try container.decode(Data.self, forKey: key)
+            XCTAssertEqual(output.count, 2)
+            XCTAssertEqual(output.first, 0x01)
+            XCTAssertEqual(output.last, 0x02)
+        } catch {
+            XCTFail(error.localizedDescription)
+        }
+        
+    }
+    
 }
 

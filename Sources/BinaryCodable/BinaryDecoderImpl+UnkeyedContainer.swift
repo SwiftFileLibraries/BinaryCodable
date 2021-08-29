@@ -213,9 +213,14 @@ extension BinaryDecoderImpl {
             return impl.options.numberDecodingStrategy == .bigEndian ? UInt(bigEndianBytes: data) : UInt(littleEndianBytes: data)
         }
         
-        @_disfavoredOverload
         mutating func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
             let newDecoder = try decoderForNextElement(ofType: T.self)
+            let object = try T(from: newDecoder)
+            return object
+        }
+        
+        mutating func decode<T>(_ type: T.Type, length: Int) throws -> T where T : Decodable {
+            let newDecoder = try decoderForNextElement(ofType: T.self, length: length)
             let object = try T(from: newDecoder)
             return object
         }

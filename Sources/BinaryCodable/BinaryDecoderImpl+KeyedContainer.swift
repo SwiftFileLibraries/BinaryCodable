@@ -238,7 +238,17 @@ extension BinaryDecoderImpl {
         }
         
         func decode<T>(_ type: T.Type, forKey key: K) throws -> T where T : Decodable {
-            let newDecoder = try decoderForNextElement(ofType: T.self, forKey: key)
+            if let binaryKey = key as? BinaryCodingKey, let length = binaryKey.length {
+                return try decode(type, length: length, forKey: key)
+            } else {
+                let newDecoder = try decoderForNextElement(ofType: T.self, forKey: key)
+                let object = try T(from: newDecoder)
+                return object
+            }
+        }
+        
+        func decode<T>(_ type: T.Type, length: Int, forKey key: K) throws -> T where T : Decodable {
+            let newDecoder = try decoderForNextElement(ofType: T.self, forKey: key, length: length)
             let object = try T(from: newDecoder)
             return object
         }
