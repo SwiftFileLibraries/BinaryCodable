@@ -54,7 +54,9 @@ extension BinaryDecoderImpl {
         // MARK: - Decoding
         
         func incrementIndex(by length: Int) throws {
-            let _ = try getNextValue(ofType: Any.self, length: length)
+            if (length > 0) {
+                let _ = try getNextValue(ofType: Any.self, length: length)
+            }
             incrementCurrentIndex(by: length)
         }
         

@@ -1,5 +1,11 @@
 #  Changelog
 
+## 2.1.1
+
+### Added
+
+- Added support for negative offsets when incrementing the current index.
+
 ## 2.1.0
 
 ### Added
